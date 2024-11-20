@@ -8,8 +8,9 @@ datasource db {
 }
 
 model User {
-  id    String @id @db.Uuid
-  name  String
-  email String
-  age   Int
+  id       String  @id @db.Uuid
+  name     String
+  email    String
+  age      Int?
+  isActive Boolean
 }
