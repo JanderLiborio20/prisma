@@ -173,6 +173,7 @@ type UpsertUserBody = {
   age?: number;
   isActive?: boolean;
 };
+
 app.put(
   '/users/upsert',
   async (request: FastifyRequest<{ Body: UpsertUserBody }>, reply) => {
@@ -204,23 +205,73 @@ app.delete(
   async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
     const { id } = request.params;
 
-    // const user = await prismaClient.user.delete({
-    //   where: {
-    //     id,
-    //   },
-    //   select: {
-    //     id: true,
-    //   },
-    // });
-
-    const user = await prismaClient.user.deleteMany({
+    const user = await prismaClient.user.delete({
       where: {
         id,
       },
+      select: {
+        id: true,
+      },
     });
+
+    // const user = await prismaClient.user.deleteMany({
+    //   where: {
+    //     id,
+    //   },
+    // });
 
     reply.send({ user });
   }
 );
+
+app.get(
+  '/',
+  async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    const { id } = request.params;
+
+    const result =
+      await prismaClient.$queryRaw`SELECT * FROM users WHERE id = ${id}::uuid`;
+
+    reply.send({ result });
+  }
+);
+
+app.post('/txSimple', async (request, reply) => {
+  const [_, count] = await prismaClient.$transaction([
+    prismaClient.user.create({
+      data: {
+        name: 'Jander',
+        email: 'jander@gmail.com',
+      },
+      select: {
+        id: true,
+      },
+    }),
+    prismaClient.user.count(),
+  ]);
+  reply.send({ count });
+});
+
+app.post('/tx', async (request, reply) => {
+  await prismaClient.$transaction(async (tx) => {
+    await tx.user.create({
+      data: {
+        name: 'Pedrinho',
+        email: 'pedrinho05@email.com',
+      },
+    });
+
+    await tx.user.create({
+      data: {
+        name: 'Pedrinho2',
+        email: 'pedrinho05@email.com',
+      },
+    });
+
+    const totalUsers = await tx.user.count();
+
+    reply.send({ totalUsers });
+  });
+});
 
 app.listen({ port: 3001 }).then(() => console.log('Server is running'));
