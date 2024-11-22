@@ -77,6 +77,7 @@ app.get(
       where: {
         id,
       },
+      select: {},
     });
 
     //Tras o primeiro item que faz sentindo com o where, caso não exista retorna um error.
