@@ -38,14 +38,28 @@ model Order {
   value  Float
   userId String @map("user_id") @db.Uuid
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  products OrderProduct[]
 
   @@map("orders")
 }
 
 model Product {
-  id    String @id @default(uuid()) @db.Uuid
-  value Float
+  id    String         @id @default(uuid()) @db.Uuid
+  value String
+  order OrderProduct[]
 
   @@map("products")
+}
+
+model OrderProduct {
+  orderId   String @db.Uuid
+  productId String @db.Uuid
+  quantity  Int
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@id([orderId, productId])
+  @@map("orders_products")
 }
